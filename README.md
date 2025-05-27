@@ -1,1 +1,3 @@
-# hello-world
+# Hello world!
+
+This is a python learning project in progress. More things coming soon...
