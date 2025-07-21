@@ -1,10 +1,6 @@
 import pygame
-
-# User input for grid size (excluding headers)
-grid_rows = int(input("Enter number of grid rows: "))
-grid_cols = int(input("Enter number of grid columns: "))
-num_vertical_headers = int(input("Enter number of vertical header columns: "))
-num_horizontal_headers = int(input("Enter number of horizontal header rows: "))
+import tkinter as tk
+from tkinter import filedialog
 
 # Colors
 WHITE = (255, 255, 255)
@@ -12,27 +8,43 @@ BLACK = (0, 0, 0)
 GRAY = (200, 200, 200)
 DARKGRAY = (128, 128, 128)
 
-# Prompt user for vertical header cell values (one line per header, comma separated, empty allowed)
-vertical_header_cells = []
-for vh in range(num_vertical_headers):
-    while True:
-        vals = input(f"Enter {grid_rows} comma separated values for vertical header col {vh+1} (empty allowed): ").split(',')
-        if len(vals) == grid_rows:
-            vertical_header_cells.append([v.strip() for v in vals])
-            break
-        else:
-            print(f"Incorrect number of values. Expected {grid_rows}, got {len(vals)}. Please try again.")
+# File selection dialog
+root = tk.Tk()
+root.withdraw()
+param_file = filedialog.askopenfilename(title="Select parameter file", filetypes=[("Text files", "*.txt"), ("All files", "*.*")])
+if not param_file:
+    print("No file selected. Exiting.")
+    exit(1)
 
-# Prompt user for horizontal header cell values (one line per header, comma separated, empty allowed)
+# Read parameters from file
+with open(param_file, 'r') as f:
+    lines = [line.strip() for line in f if line.strip()]
+
+# Parse parameters
+# 1st line: grid_rows
+# 2nd line: grid_cols
+# 3rd line: num_vertical_headers
+# 4th line: num_horizontal_headers
+# Next num_vertical_headers lines: vertical header cells (comma separated)
+# Next num_horizontal_headers lines: horizontal header cells (comma separated)
+grid_rows = int(lines[0])
+grid_cols = int(lines[1])
+num_vertical_headers = int(lines[2])
+num_horizontal_headers = int(lines[3])
+
+vertical_header_cells = []
+for i in range(num_vertical_headers):
+    vals = lines[4 + i].split(',')
+    if len(vals) != grid_rows:
+        raise ValueError(f"Vertical header col {i+1} must have {grid_rows} values, got {len(vals)}")
+    vertical_header_cells.append([v.strip() for v in vals])
+
 horizontal_header_cells = []
-for hh in range(num_horizontal_headers):
-    while True:
-        vals = input(f"Enter {grid_cols} comma separated values for horizontal header row {hh+1} (empty allowed): ").split(',')
-        if len(vals) == grid_cols:
-            horizontal_header_cells.append([v.strip() for v in vals])
-            break
-        else:
-            print(f"Incorrect number of values. Expected {grid_cols}, got {len(vals)}. Please try again.")
+for i in range(num_horizontal_headers):
+    vals = lines[4 + num_vertical_headers + i].split(',')
+    if len(vals) != grid_cols:
+        raise ValueError(f"Horizontal header row {i+1} must have {grid_cols} values, got {len(vals)}")
+    horizontal_header_cells.append([v.strip() for v in vals])
 
 cell_size = 60
 width = (grid_cols + num_vertical_headers) * cell_size
